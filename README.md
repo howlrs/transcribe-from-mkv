@@ -35,6 +35,18 @@ input.mkv → [ffmpeg] → audio.wav → [faster-whisper] → transcript.txt →
 ...
 ```
 
+## ディレクトリ構成
+
+```
+.
+├── transcribe.bat          # Windows 用ランチャー (ドラッグ＆ドロップ)
+├── scripts/
+│   ├── transcribe.sh       # メインスクリプト (WSL2/Linux)
+│   ├── transcribe.py       # faster-whisper 文字起こし
+│   └── requirements.txt    # Python 依存関係
+└── README.md
+```
+
 ## 必要環境
 
 - **OS**: WSL2 (Ubuntu) — Windows から WSL2 経由で実行
@@ -54,7 +66,7 @@ sudo apt install ffmpeg
 ### 2. Python パッケージのインストール
 
 ```bash
-pip install -r requirements.txt
+pip install -r scripts/requirements.txt
 ```
 
 ### 3. Gemini CLI のインストールと認証
@@ -69,7 +81,7 @@ gemini  # 初回起動で認証
 ### 4. スクリプトに実行権限を付与
 
 ```bash
-chmod +x transcribe.sh
+chmod +x scripts/transcribe.sh
 ```
 
 ## 使い方
@@ -77,7 +89,7 @@ chmod +x transcribe.sh
 ### WSL2 / Linux から直接実行
 
 ```bash
-./transcribe.sh "2026-03-18 16-01-55.mkv"
+./scripts/transcribe.sh "2026-03-18 16-01-55.mkv"
 ```
 
 ### Windows からドラッグ＆ドロップで実行
@@ -101,7 +113,7 @@ chmod +x transcribe.sh
 
 ### Whisper モデルの変更
 
-`transcribe.sh` の `WHISPER_MODEL` を変更：
+`scripts/transcribe.sh` の `WHISPER_MODEL` を変更：
 
 | モデル | 精度 | 速度 (1時間音声) | 備考 |
 |--------|------|------------------|------|
@@ -116,14 +128,14 @@ chmod +x transcribe.sh
 環境変数 `WHISPER_THREADS` で制御できます（デフォルト: 4）：
 
 ```bash
-WHISPER_THREADS=8 ./transcribe.sh input.mkv
+WHISPER_THREADS=8 ./scripts/transcribe.sh input.mkv
 ```
 
 > スレッド数を増やしすぎると逆に遅くなる場合があります。4〜8 が推奨です。
 
 ### Gemini モデルの変更
 
-`transcribe.sh` の `GEMINI_MODEL` を変更：
+`scripts/transcribe.sh` の `GEMINI_MODEL` を変更：
 
 ```bash
 GEMINI_MODEL="gemini-3.1-flash-lite-preview"  # デフォルト
@@ -131,7 +143,7 @@ GEMINI_MODEL="gemini-3.1-flash-lite-preview"  # デフォルト
 
 ### 議事録テンプレートの変更
 
-`transcribe.sh` 内の `PROMPT_TEMPLATE` セクションを編集することで、議事録のフォーマットや指示を自由にカスタマイズできます。
+`scripts/transcribe.sh` 内の `PROMPT_TEMPLATE` セクションを編集することで、議事録のフォーマットや指示を自由にカスタマイズできます。
 
 ## 性能目安
 

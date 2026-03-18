@@ -1,0 +1,35 @@
+# Media files
+*.mkv
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mov
+
+# Generated outputs
+*_transcript.txt
+*_minutes.md
+
+# Temporary files
+*_tmp.*
+
+# Python
+__pycache__/
+*.pyc
+
+# Whisper model cache
+# (stored in ~/.cache/huggingface/)
+
+# Misc media
+MP3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Legacy batch scripts (not part of this project)
+ToTranscript.bat
+ToVoice.bat
+
+# docs/plans (design docs, not needed in repo)
+docs/

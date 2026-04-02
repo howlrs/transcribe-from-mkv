@@ -22,7 +22,7 @@ set "DRIVE=%WPATH:~0,1%"
 call :LOWER %DRIVE% LDRIVE
 set "WPATH=/mnt/%LDRIVE%%WPATH:~2%"
 
-wsl -d dev bash -lc "cd /mnt/e/Videos && ./scripts/transcribe.sh \"%WPATH%\""
+wsl -d ubuntu-24.04 bash -lc "cd /mnt/e/Videos && ./scripts/transcribe.sh \"%WPATH%\""
 
 echo.
 pause

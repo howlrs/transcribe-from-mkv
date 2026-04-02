@@ -5,8 +5,17 @@ set -euo pipefail
 # 使い方: ./transcribe.sh input.mkv
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PYTHON="/home/o9oem/venv-transcribe/bin/python3"
+
+# --- 非対話シェル用: nvm default の PATH を補完 ---
+NVM_DEFAULT=$(cat "$HOME/.nvm/alias/default" 2>/dev/null || echo "")
+if [ -n "$NVM_DEFAULT" ]; then
+    NVM_NODE_DIR=$(ls -d "$HOME/.nvm/versions/node/v${NVM_DEFAULT}"* 2>/dev/null | sort -V | tail -1)
+    [ -n "$NVM_NODE_DIR" ] && export PATH="$NVM_NODE_DIR/bin:$PATH"
+fi
+export PATH="$HOME/.local/bin:$PATH"
+source "$HOME/.config/env/secrets.env" 2>/dev/null
 WHISPER_MODEL="turbo"
-GEMINI_MODEL="gemini-3.1-flash-lite-preview"
 
 # --- 引数チェック ---
 if [ $# -lt 1 ]; then
@@ -21,16 +30,22 @@ if [ ! -f "$INPUT_FILE" ]; then
 fi
 
 # --- 依存関係チェック ---
-for cmd in ffmpeg python3 gemini; do
+for cmd in ffmpeg gemini; do
     if ! command -v "$cmd" &>/dev/null; then
         echo "エラー: $cmd がインストールされていません。"
         exit 1
     fi
 done
 
-python3 -c "import faster_whisper" 2>/dev/null || {
+if [ ! -x "$PYTHON" ]; then
+    echo "エラー: Python venv が見つかりません: $PYTHON"
+    echo "  python3 -m venv /home/o9oem/venv-transcribe && /home/o9oem/venv-transcribe/bin/pip install faster-whisper"
+    exit 1
+fi
+
+"$PYTHON" -c "import faster_whisper" 2>/dev/null || {
     echo "エラー: faster-whisper がインストールされていません。"
-    echo "  pip install faster-whisper"
+    echo "  /home/o9oem/venv-transcribe/bin/pip install faster-whisper"
     exit 1
 }
 
@@ -50,14 +65,14 @@ echo "  完了: $AUDIO_TMP"
 
 # --- Step 2: 文字起こし (faster-whisper) ---
 echo "=== Step 2/3: 文字起こし (faster-whisper, model=$WHISPER_MODEL) ==="
-python3 "$SCRIPT_DIR/transcribe.py" "$AUDIO_TMP" "$TRANSCRIPT_FILE" "$WHISPER_MODEL"
+"$PYTHON" "$SCRIPT_DIR/transcribe.py" "$AUDIO_TMP" "$TRANSCRIPT_FILE" "$WHISPER_MODEL"
 echo "  完了: $TRANSCRIPT_FILE"
 
 # --- 一時ファイル削除 ---
 rm -f "$AUDIO_TMP"
 
 # --- Step 3: 議事録化 (Gemini CLI) ---
-echo "=== Step 3/3: 議事録化 (Gemini API, model=$GEMINI_MODEL) ==="
+echo "=== Step 3/3: 議事録化 (Gemini CLI) ==="
 
 # ファイル名から日時を推測 (例: "2026-03-18 14-00-52")
 MEETING_DATE="不明"
@@ -129,7 +144,7 @@ PROMPT="${PROMPT/MEETING_DATE_PLACEHOLDER/$MEETING_DATE}"
 PROMPT="${PROMPT/TRANSCRIPT_PLACEHOLDER/$TRANSCRIPT_CONTENT}"
 
 # Gemini CLI で議事録生成
-echo "$PROMPT" | gemini -p "" -m "$GEMINI_MODEL" > "$MINUTES_FILE"
+echo "$PROMPT" | gemini -p "" > "$MINUTES_FILE"
 
 echo "  完了: $MINUTES_FILE"
 echo ""
